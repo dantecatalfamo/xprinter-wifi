@@ -17,6 +17,7 @@ class Xprinter
   PORT = 9100
   
   def initialize(device)
+    raise "Device does not exist" unless File.exists?(device)
     @printer = File.open(device, 'w')
   end
 
@@ -34,7 +35,7 @@ class Xprinter
   end
 
   def set_network(...)
-    cmd = set_all_network_command(...)
+    cmd = set_network_command(...)
     write(cmd)
   end
 
@@ -55,40 +56,30 @@ class Xprinter
   end
 
   class CLI
-    OPTS = [
-      ["Set Network", :set_network],
-    ].freeze
-    
+    ABOUT = <<~EOF
+      usage: #{$PROGRAM_NAME} <device>
+
+      Configure the wireless options for an Xprinter wireless thermal
+      receipt printer. <device> is the device file of the printer. For
+      example: /dev/usb/lp0.
+    EOF
     def run
-      abort "#{$PROGRAM_NAME} <device>" unless ARGV[0]
-      puts "Connecting..."
-      @printer = Xprinter.new(ARGV[0])
-      puts "Connected!"
+      device = ARGV[0]
+      abort ABOUT unless device && File.exists?(device) && !File.stat(device).rdev.zero?
+      @printer = Xprinter.new(device)
+      puts "Connected to #{device}"
 
-      OPTS.each_with_index do |opt, idx|
-        puts "[#{idx}] #{opt[0]}"
-      end
-      input = nil
-      while input.nil? do
-        print "> "
-        input = Integer($stdin.gets.chomp, exception: false)
-        puts "Invalid input, try again" if input.nil?
-      end
-      option = OPTS[input]
-
-      case option[1]
-      when :set_network
-        print "IP> "
-        ip = $stdin.gets.chomp
-        print "Subnet Mask> "
-        mask = $stdin.gets.chomp
-        print "Gateway> "
-        gateway = $stdin.gets.chomp
-        print "SSID> "
-        ssid = $stdin.gets.chomp
-        print "Password> "
-        key = $stdin.gets.chomp
-        puts <<~KEY
+      print "IP> "
+      ip = $stdin.gets.chomp
+      print "Subnet Mask> "
+      mask = $stdin.gets.chomp
+      print "Gateway> "
+      gateway = $stdin.gets.chomp
+      print "SSID> "
+      ssid = $stdin.gets.chomp
+      print "Password> "
+      key = $stdin.gets.chomp
+      puts <<~KEY
           | Key Type           | Value |
           |--------------------+-------|
           | NULL               |    0  |
@@ -102,15 +93,13 @@ class Xprinter
           | WPA2_TKIP_AES_PSK  |    8  |
           | WPA_WPA2_MixedMode |    9  |
         KEY
-        print "Key Type [6]> "
-        key_type = Integer($stdin.gets.chomp, exception: false)
-        key_type = key_type.nil? ? 6 : key_type
-        key_type = key_type.chr
+      print "Key Type [6]> "
+      key_type = Integer($stdin.gets.chomp, exception: false)
+      key_type = key_type.nil? ? 6 : key_type
+      key_type = key_type.chr
 
-        puts "Sending..."
-        @printer.set_network(ip, mask, gateway, ssid, key, key_type)
-        puts "Sent!"
-      end
+      @printer.set_network(ip, mask, gateway, ssid, key, key_type)
+      puts "Sent!"
     end
   end
 end
