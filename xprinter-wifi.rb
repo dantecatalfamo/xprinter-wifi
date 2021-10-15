@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'ipaddr'
-require 'socket'
 
 class Xprinter
   UNIT_SEPARATOR = "\x1f"
