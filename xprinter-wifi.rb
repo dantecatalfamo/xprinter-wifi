@@ -17,11 +17,7 @@ class Xprinter
   PORT = 9100
   
   def initialize(device)
-    if device.start_with?('/') && File.exists?(device)
-      @printer = File.open(device, 'w')
-    else
-      @printer = TCPSocket.new(device, PORT)
-    end
+    @printer = File.open(device, 'w')
   end
 
   def write(data)
@@ -37,76 +33,14 @@ class Xprinter
     write(data + NEWLINE)
   end
 
-  def set_ip(...)
-    cmd = set_ip_command(...)
-    write(cmd)
-  end
-
-  def set_subnet_mask(...)
-    cmd = set_subnet_mask_command(...)
-    write(cmd)
-  end
-
-  def set_gateway(...)
-    cmd = set_gateway_command(...)
-    write(cmd)
-  end
-
-  def set_interface(...)
-    cmd = set_interface_command(...)
-    write(cmd)
-  end
-
-  def set_wifi_network(...)
-    cmd = set_wifi_network_command(...)
-    write(cmd)
-  end
-
-  def set_all_network(...)
+  def set_network(...)
     cmd = set_all_network_command(...)
     write(cmd)
   end
 
   private
   
-  def set_ip_command(ip)
-    addr = IPAddr.new(ip)
-    raise 'Not a valid IPv4 address' unless addr.ipv4?
-
-    "#{PREAMBLE}#{IP_COMMAND}#{addr.hton}"
-  end
-
-  def set_subnet_mask_command(mask)
-    addr = IPAddr.new(mask)
-    raise 'Not a valid IPv4 subnet mask' unless addr.ipv4?
-
-    "#{PREAMBLE}#{SN_COMMAND}#{addr.hton}"
-  end
-
-  def set_gateway_command(gateway)
-    addr = IPAddr.new(gateway)
-    raise 'Not a valid IPv4 address' unless addr.ipv4?
-
-    "#{PREAMBLE}#{GW_COMMAND}#{addr.hton}"
-  end
-
-  def set_interface_command(ip, mask, gateway)
-    ip_addr = IPAddr.new(ip)
-    mask_addr = IPAddr.new(mask)
-    gateway_addr = IPAddr.new(gateway)
-
-    raise 'Not a valid IPv4 IP address' unless ip_addr.ipv4?
-    raise 'Not a valud IPv4 subnet mask' unless mask_addr.ipv4?
-    raise 'Not a valid IPv4 gateway' unless gateway_addr.ipv4?
-
-    "#{PREAMBLE}#{INTERFACE_COMMAND}#{ip_addr.hton}#{mask_addr.hton}#{gateway_addr.hton}"
-  end
-
-  def set_wifi_network_command(ssid, key, key_type = 6)
-    "#{PREAMBLE}#{WIFI_COMMAND}#{key_type.chr}#{ssid}\0#{key}\0"
-  end
-
-  def set_all_network_command(ip, mask, gateway, ssid, key, key_type = 6)
+  def set_network_command(ip, mask, gateway, ssid, key, key_type = 6)
     ip_addr = IPAddr.new(ip)
     mask_addr = IPAddr.new(mask)
     gateway_addr = IPAddr.new(gateway)
@@ -122,16 +56,11 @@ class Xprinter
 
   class CLI
     OPTS = [
-      ["Set IP", :set_ip],
-      ["Set Subnet Mask", :set_subnet_mask],
-      ["Set Gateway", :set_gateway],
-      ["Set Interface", :set_interface],
-      ["Set WiFi Network", :set_wifi_network],
-      ["Set All Network", :set_all_network],
+      ["Set Network", :set_network],
     ].freeze
     
     def run
-      abort "#{$PROGRAM_NAME} <ip or device>" unless ARGV[0]
+      abort "#{$PROGRAM_NAME} <device>" unless ARGV[0]
       puts "Connecting..."
       @printer = Xprinter.new(ARGV[0])
       puts "Connected!"
@@ -148,13 +77,7 @@ class Xprinter
       option = OPTS[input]
 
       case option[1]
-      when :set_ip, :set_subnet_mask, :set_gateway
-        print "#{option[0].split[1..].join(' ')}> "
-        @printer.send(option[1], $stdin.gets.chomp)
-        puts "Set!"
-      when :set_interface
-      when :set_wifi_network
-      when :set_all_network
+      when :set_network
         print "IP> "
         ip = $stdin.gets.chomp
         print "Subnet Mask> "
@@ -185,7 +108,7 @@ class Xprinter
         key_type = key_type.chr
 
         puts "Sending..."
-        @printer.set_all_network(ip, mask, gateway, ssid, key, key_type)
+        @printer.set_network(ip, mask, gateway, ssid, key, key_type)
         puts "Sent!"
       end
     end
