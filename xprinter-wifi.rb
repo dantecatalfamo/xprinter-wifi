@@ -6,12 +6,7 @@ require 'socket'
 class Xprinter
   UNIT_SEPARATOR = "\x1f"
   ESCAPE = "\e"
-  IP_COMMAND = "\x22"
-  SN_COMMAND = "\xb0"
-  GW_COMMAND = "\xb1"
-  INTERFACE_COMMAND = "\xb2"
-  WIFI_COMMAND = "\xb3"
-  ALL_COMMAND = "\xb4"
+  NETWORK_COMMAND = "\xb4"
   PREAMBLE = "#{UNIT_SEPARATOR}#{ESCAPE}#{UNIT_SEPARATOR}"
   NEWLINE = "\r\n"
   PORT = 9100
@@ -50,7 +45,7 @@ class Xprinter
     raise 'Not a valud IPv4 subnet mask' unless mask_addr.ipv4?
     raise 'Not a valid IPv4 gateway' unless gateway_addr.ipv4?
 
-    "#{PREAMBLE}#{ALL_COMMAND}#{ip_addr.hton.force_encoding('UTF-8')}" \
+    "#{PREAMBLE}#{NETWORK_COMMAND}#{ip_addr.hton.force_encoding('UTF-8')}" \
       "#{mask_addr.hton.force_encoding('UTF-8')}#{gateway_addr.hton.force_encoding('UTF-8')}" \
       "#{key_type.chr}#{ssid}\0#{key}\0"
   end
