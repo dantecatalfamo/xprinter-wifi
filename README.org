@@ -1,0 +1,12 @@
+* Xprinter WiFi
+
+  [[file:screenshot.png]]
+
+  This tool allows you to setup the WiFi on a wireless Xprinter
+  thermal receipt printer on Linux, without the use of the official
+  Windows-only setup tool.
+
+  To use it, plug your thermal printer into a USB port and determine
+  it's device file. For example =/dev/usb/lp0=. From there you just
+  have to run =ruby xprinter-wifi.rb= and it should prompt you for the
+  values required.
