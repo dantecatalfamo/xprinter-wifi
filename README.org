@@ -8,5 +8,8 @@
 
   To use it, plug your thermal printer into a USB port and determine
   it's device file. For example =/dev/usb/lp0=. From there you just
-  have to run =ruby xprinter-wifi.rb= and it should prompt you for the
-  values required.
+  have to run =ruby xprinter-wifi.rb /dev/usb/lp0= and it should
+  prompt you for the values required.
+
+  This script was created as part of a [[https://blog.lambda.cx/posts/xprinter-wifi/][blog post]] about reverse
+  engineering thermal printer setup commands.
